@@ -57,10 +57,13 @@ def fetch_property_info(property_id, print_output=False):
         return None
 
 
-def rewrite_property_title(property_info, model="gemma2", retries=3):
+
+
+def rewrite_property_title(property_info, model="gemma2:2b", retries=3):
     """
     Rewrites the title of the property using the specified Ollama model.
     Ensures data integrity by retrying on blank responses and handling errors.
+    Uses streaming to handle large or chunked responses.
     """
     title = property_info.get("title")
     property_id = property_info.get("id")
@@ -70,13 +73,23 @@ def rewrite_property_title(property_info, model="gemma2", retries=3):
     for attempt in range(retries):
         try:
             response = requests.post(
-                "http://localhost:11434/api/gemma2",  # Assuming Ollama API runs locally on this endpoint
-                json={"prompt": prompt},
+                "http://localhost:11434/api/generate",  # Assuming Ollama API runs locally on this endpoint
+                json={"prompt": prompt, "model": model},
                 timeout=10,  # Timeout set to 10 seconds
+                stream=True,  # Enable streaming
             )
-            if response.status_code == 200 and response.json():
-                data = response.json()
-                new_title = data.get("title")
+
+            if response.status_code == 200:
+                new_title = ""
+
+                # Process the response chunks as they arrive
+                for chunk in response.iter_content(chunk_size=None):
+                    if chunk:
+                        data = chunk.decode("utf-8")  # Decode the chunk
+                        new_title += data  # Append chunk to the new_title
+
+                new_title = new_title.strip()  # Clean up the final title
+
                 if new_title:
                     # Update the property title in the database
                     with transaction.atomic():
@@ -84,6 +97,13 @@ def rewrite_property_title(property_info, model="gemma2", retries=3):
                         property_obj.title = new_title
                         property_obj.save()
                     return new_title
+
+            else:
+                # Handle non-200 responses
+                print(
+                    f"Unexpected response status {response.status_code} for property {property_id}."
+                )
+
         except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
             # Handle request timeout or other request-related errors
             print(f"Attempt {attempt + 1} failed: {e}")
@@ -94,7 +114,7 @@ def rewrite_property_title(property_info, model="gemma2", retries=3):
     return None
 
 
-def generate_property_summary(property_info, model="gemma2"):
+def generate_property_summary(property_info, model="gemma2:2b"):
     """
     Generates a summary using the Ollama model and saves it to the PropertySummary table.
     """

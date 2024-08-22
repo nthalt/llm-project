@@ -10,18 +10,31 @@ from llm_app.services import (  # rewrite_property_title,_description, write sum
 
 class Command(BaseCommand):
     """
-    class for interacting with ollama models and updating property information
+    Class for interacting with Ollama models and updating property information.
     """
 
     help = "Rewrites property titles and descriptions, and generates summaries using gemma2 model."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--limit",
+            type=int,
+            default=None,
+            help="Limit the number of properties to process",
+        )
+
     def handle(self, *args, **kwargs):
-        # Iterate over all properties
+        # Get the limit from command arguments
+        limit = kwargs.get("limit")
+
+        # Fetch properties with optional limit
         properties = Property.objects.all()
+        if limit is not None:
+            properties = properties[:limit]
 
         for property in properties:
             # Fetch property information
-            property_info = fetch_property_info(property.property_id)
+            property_info = fetch_property_info(property.property_id, True)
 
             if property_info:
                 # Rewrite the property title
