@@ -1,6 +1,10 @@
 # Property-Manager-Django
 
-This is a property title, description and summary generator application using `Ollama` model ([gemma2:2b](https://ollama.com/library/gemma2:2b)) and Django which reads hotel informations from a [property-manager-django](https://github.com/nthalt/property-manager-django) project database and stores newly generated title, description summary into the same postgres database. The title is generated based on the previous title, the description is generated based on the newly generated title. And the summary is generated using title, description, location, amenities of each property. The summary of each property is stored in a new PropertySummary table. The admin panel provides the property, PropertySummary models for visualizing and managing data the updated title, description and summary of each property.
+This is a property title, description and summary generator application using `Ollama` model ([gemma2:2b](https://ollama.com/library/gemma2:2b)) and Django which reads hotel informations from a [property-manager-django](https://github.com/nthalt/property-manager-django) project database and stores newly generated title, description summary into the same postgres database. 
+
+The title is generated based on the previous title, the description is generated based on the newly generated title. And the summary is generated using title, description, location, amenities of each property. 
+
+The summary of each property is stored in a new PropertySummary table. The admin panel provides the property, PropertySummary models for visualizing and managing data the updated title, description and summary of each property.
 For anyone interested, the `property-manager-django` project can be found here [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django).
 
 - [Requirements](#requirements)
