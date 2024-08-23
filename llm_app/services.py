@@ -227,29 +227,65 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
     return None
 
 
-def generate_property_summary(property_info, model="gemma2:2b"):
+def generate_property_summary(property_info, model="gemma2:2b", retries=3):
     """
-    Generates a summary using the Ollama model and saves it to the PropertySummary table.
+    Generates a summary for the property based on its title, description, location, and amenities.
+    Ensures data integrity by retrying on blank responses and handling errors.
     """
+    title = property_info.get("title")
+    description = property_info.get("description")
+    locations = property_info.get("locations")
+    amenities = property_info.get("amenities")
+    property_id = property_info.get("id")
+
     prompt = (
-        f"Generate a summary for the following property information:\n"
-        f"Title: {property_info.get('title')}\n"
-        f"Description: {property_info.get('description')}\n"
-        f"Location: {property_info.get('locations')}\n"
-        f"Amenities: {property_info.get('amenities')}\n"
+        f"Generate a concise, engaging summary for the following hotel property. "
+        f"Use the provided information to highlight the key features, atmosphere, and appeal of the property. "
+        f"The summary should be around 2-3 sentences and make the property stand out to potential guests. "
+        f"Ensure that the summary is free of any extra symbols or punctuation. Give only one summary and in the following format only:\n\n"
+        f"Summary: generated_summary\n\n"
+        f"Title: {title}\n"
+        f"Description: {description}\n"
+        f"Location: {locations}\n"
+        f"Amenities: {amenities}"
     )
 
-    response = requests.post(
-        "http://localhost:11434/api/gemma2",  # Assuming Ollama API runs locally
-        json={"prompt": prompt},
-    )
+    for attempt in range(retries):
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"prompt": prompt, "model": model},
+                timeout=10,
+                stream=True,
+            )
 
-    if response.status_code == 200 and response.json().get("summary"):
-        summary = response.json().get("summary")
-        property_obj = Property.objects.get(property_id=property_info["id"])
-        PropertySummary.objects.update_or_create(
-            property=property_obj, defaults={"summary": summary}
-        )
-    else:
-        # Retry if the response is blank
-        generate_property_summary(property_info, model)
+            if response.status_code == 200:
+                response_chunks = []
+                for chunk in response.iter_content(chunk_size=None):
+                    if chunk:
+                        response_chunks.append(chunk)
+
+                summary = parse_response(response_chunks, "Summary")
+                summary = "".join(
+                    c for c in summary if c.isalnum() or c.isspace()
+                ).strip()
+
+                if summary:
+                    property_obj = Property.objects.get(property_id=property_id)
+                    PropertySummary.objects.update_or_create(
+                        property=property_obj, defaults={"summary": summary}
+                    )
+                    return summary
+
+            else:
+                print(
+                    f"Unexpected response status {response.status_code} for property {property_id}."
+                )
+
+        except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+
+    print(
+        f"Failed to generate summary for property {property_id} after {retries} attempts."
+    )
+    return None

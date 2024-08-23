@@ -26,13 +26,6 @@ class Command(BaseCommand):
             help="Limit the number of properties to process",
         )
 
-    def test_parse_response():
-        test_response = "Title: Newly Renovated Hotel with Sea View"
-        parsed_title = parse_response(test_response, "Title")
-        print(
-            f"Parsed title: {parsed_title}"
-        )  # Should print "Newly Renovated Hotel with Sea View"
-
     def handle(self, *args, **kwargs):
         # Get the limit from command arguments
         limit = kwargs.get("limit")
@@ -47,15 +40,11 @@ class Command(BaseCommand):
             property_info = fetch_property_info(property.property_id, True)
 
             if property_info:
-                # Rewrite the property title
-
                 # test_parse_response()
 
                 # new_title = rewrite_property_title(property_info)
                 # print(f"new title:{new_title}")
                 # if new_title:
-                #     #     property.title = new_title
-                #     #     property.save()
                 #     self.stdout.write(
                 #         self.style.SUCCESS(
                 #             f"Updated title for property {property.property_id}"
@@ -68,20 +57,34 @@ class Command(BaseCommand):
                 #         )
                 #     )
 
-                # Try to generate the property description separately
-                new_description = write_property_description(property_info)
-                print(f"new description:{new_description}")
-                if new_description:
-                    # property.description = new_description
-                    # property.save()
+                # # Try to generate the property description separately
+                # new_description = write_property_description(property_info)
+                # print(f"new description:{new_description}")
+                # if new_description:
+                #     self.stdout.write(
+                #         self.style.SUCCESS(
+                #             f"Updated description for property {property.property_id}"
+                #         )
+                #     )
+                # else:
+                #     self.stdout.write(
+                #         self.style.ERROR(
+                #             f"Failed to update description for property {property.property_id}"
+                #         )
+                #     )
+
+                # Generate the property summary
+                new_summary = generate_property_summary(property_info)
+                print(f"New summary: {new_summary}")
+                if new_summary:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Updated description for property {property.property_id}"
+                            f"Updated summary for property {property.property_id}"
                         )
                     )
                 else:
                     self.stdout.write(
                         self.style.ERROR(
-                            f"Failed to update description for property {property.property_id}"
+                            f"Failed to update summary for property {property.property_id}"
                         )
                     )
