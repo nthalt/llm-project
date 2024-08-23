@@ -1,8 +1,7 @@
 # Property-Manager-Django
 
-change the following description:
-This is a property title, description and summary generator application using `Ollama` which uses hotel informations from a [property-manager-django](https://github.com/nthalt/property-manager-django) project database and stores newly generated title, description, summary into the same postgres database. The title is generated based on the previous title, the description is generated based on th newly generated title. And the summary is generated using title, description, location, amenities of each property. The summary of each property is stored in a new PropertySummary table. The admin panel provides the property, location, amenity, propertyImage, PropertySummary models for visualizing and managing data.
-For anyone interested, the Scrapy project can be found here [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django).
+This is a property title, description and summary generator application using `Ollama` model ([gemma2:2b](https://ollama.com/library/gemma2:2b)) and Django which reads hotel informations from a [property-manager-django](https://github.com/nthalt/property-manager-django) project database and stores newly generated title, description summary into the same postgres database. The title is generated based on the previous title, the description is generated based on the newly generated title. And the summary is generated using title, description, location, amenities of each property. The summary of each property is stored in a new PropertySummary table. The admin panel provides the property, PropertySummary models for visualizing and managing data the updated title, description and summary of each property.
+For anyone interested, the `property-manager-django` project can be found here [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django).
 
 - [Requirements](#requirements)
 - [Features](#features)
@@ -13,6 +12,7 @@ For anyone interested, the Scrapy project can be found here [https://github.com/
   - [properties_location](#properties_location)
   - [properties_amenity](#properties_amenity)
   - [properties_propertyimage](#properties_propertyimage)
+  - [llm_app_propertysummary](#llm_app_propertysummary)
 - [Contributing](#contributing)
 
 ## Requirements
@@ -21,18 +21,18 @@ For anyone interested, the Scrapy project can be found here [https://github.com/
 - [PostgreSQL](https://www.postgresql.org/download/)
 - [Django](https://www.djangoproject.com/)
 - [Ollama](https://ollama.com/download)
+- [gemma2:2b](https://ollama.com/library/gemma2:2b)
 - Run the property-manager-django project from here [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django)
 
 ## Features
-change this too:
+
 1. Uses Django Model(s) and migrations
 2. Uses Django admin with proper authentication
-3. Enables CRUD operations for all the models maintaining relationship from
-   Django admin panel
-4. Provides a Django CLI application to migrate all the data from
-   Scrapy project database to Django
-5. Uses postgres database
-6. Uses Django ORM
+3. Provides a Django CLI application to generate property title, description, summary from
+   stored property information in the Django project database
+4. Uses postgres database
+5. Uses Django ORM
+6. Uses Ollama model ([gemma2:2b](https://ollama.com/library/gemma2:2b))
 
 ## Setup and Installation
 
@@ -69,13 +69,14 @@ change this too:
    ```bash
    cp .env.example .env
    ```
+
    Make sure to provide the database name where the data will be updated i.e. `DB_NAME=django_hotel_db`. Also provide other relevent environment informations.
 
 5. **Make sure Postgresql database engine is installed and running**
 
 6. **You should already have the `django_hotel_db` database created from the property-manager-django project. If you don't have the database, you need to run the property-manager-django project from this link: [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django)**
 
-    - If you have previously run it and have the database, then you can skip this step.
+   - If you have previously run it and have the database, then you can skip this step.
 
 <!-- 7. **Create the migration files**
 
@@ -120,7 +121,15 @@ change this too:
 - Please follow the directory structure mentioned in [Setup and Installation](#setup-and-installation). `property-manager-django` directory and `llm-project` directory should be under the same parent directory.
 - Ensure that the database is created according to [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django). If you have previously run it and have the database, then you don't need to do anything.
 - Ensure that you have activated the virtual environment before running the `pip install -r requirements.txt` command. This ensures that all dependencies are installed within the virtual environment and do not affect the global Python environment.
-- Check if the 
+- Ensure the following lines exist in settings.py 
+    ```bash
+    property_manager_path = os.path.abspath(
+        os.path.join(BASE_DIR, "../property-manager-django")
+    )
+
+    if os.path.exists(property_manager_path):
+        sys.path.append(property_manager_path)
+    ```
 
 ## Database Schema
 
@@ -163,8 +172,6 @@ The database schema consists of the following main tables:
 | image       | character varying(100) | Not Null                    |
 | property_id | integer                | Not Null, Foreign Key       |
 
-
-
 ### Relationships
 
 - A Property can have multiple PropertyImages (One-to-Many)
@@ -173,18 +180,17 @@ The database schema consists of the following main tables:
 
 #### llm_app_propertysummary
 
-| Column      | Type                   | Constraints                             |
-| ----------- | ---------------------- | --------------------------------------- |
-| id          | bigint                 | Primary Key, Auto-increment             |
-| summary     | text                   | Not Null                                |
-| property_id | integer                | Not Null, Foreign Key, Unique Constraint|
-| create_date | timestamp with time zone | Not Null, Auto-set on creation          |
-| update_date | timestamp with time zone | Not Null, Auto-updated on modification  |
+| Column      | Type                     | Constraints                              |
+| ----------- | ------------------------ | ---------------------------------------- |
+| id          | bigint                   | Primary Key, Auto-increment              |
+| summary     | text                     | Not Null                                 |
+| property_id | integer                  | Not Null, Foreign Key, Unique Constraint |
+| create_date | timestamp with time zone | Not Null, Auto-set on creation           |
+| update_date | timestamp with time zone | Not Null, Auto-updated on modification   |
 
 ### Relationships
 
 - A Property has a One-to-One relationship with a PropertySummary (One-to-One)
-
 
 ### Indexing
 
