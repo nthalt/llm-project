@@ -33,10 +33,9 @@ class Command(BaseCommand):
         if limit is not None:
             properties = properties[:limit]
 
-        print("fetching data: \n")
-
         for property in properties:
             # Fetch property information
+            print("fetching data: \n")
             property_info = fetch_property_info(property.property_id)
 
             if property_info:
