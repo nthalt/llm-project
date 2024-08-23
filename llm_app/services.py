@@ -1,19 +1,10 @@
 import json
-import re
 
 import requests
 from django.db import transaction
 from properties.models import Property
 
 from llm_app.models import PropertySummary
-
-
-def test_parse_response():
-    test_response = "Title: Newly Renovated Hotel with Sea View"
-    parsed_title = parse_response(test_response, "Title")
-    print(
-        f"Parsed title: {parsed_title}"
-    )  # Should print "Newly Renovated Hotel with Sea View"
 
 
 def fetch_property_info(property_id, print_output=False):
@@ -134,9 +125,10 @@ def rewrite_property_title(property_info, model="gemma2:2b", retries=2):
                         response_chunks.append(chunk)  # Collect chunks
 
                 response_text = parse_response(response_chunks, "Title")
-                print(f"Raw response text: {response_text}")  # Log the raw response
+                # print(f"Raw response text: {response_text}")  # Log the raw response
 
                 new_title = response_text
+                print(f"Previous title: {title}")
                 print(f"New title: {new_title}")
 
                 if new_title:
@@ -255,7 +247,7 @@ def generate_property_summary(property_info, model="gemma2:2b", retries=3):
             response = requests.post(
                 "http://localhost:11434/api/generate",
                 json={"prompt": prompt, "model": model},
-                timeout=10,
+                timeout=20,
                 stream=True,
             )
 

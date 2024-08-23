@@ -4,9 +4,7 @@ from properties.models import Property
 from llm_app.services import (  # rewrite_property_title,_description, write summary
     fetch_property_info,
     generate_property_summary,
-    parse_response,
     rewrite_property_title,
-    test_parse_response,
     write_property_description,
 )
 
@@ -37,41 +35,40 @@ class Command(BaseCommand):
 
         for property in properties:
             # Fetch property information
-            property_info = fetch_property_info(property.property_id, True)
+            property_info = fetch_property_info(property.property_id)
 
             if property_info:
-                # test_parse_response()
 
-                # new_title = rewrite_property_title(property_info)
-                # print(f"new title:{new_title}")
-                # if new_title:
-                #     self.stdout.write(
-                #         self.style.SUCCESS(
-                #             f"Updated title for property {property.property_id}"
-                #         )
-                #     )
-                # else:
-                #     self.stdout.write(
-                #         self.style.ERROR(
-                #             f"Failed to update title for property {property.property_id}"
-                #         )
-                #     )
+                new_title = rewrite_property_title(property_info)
+                # print(f"new title: {new_title}")
+                if new_title:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Updated title for property {property.property_id}\nTitle: {property.title}\n"
+                        )
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"Failed to update title for property {property.property_id}\nTitle: {property.title}\n"
+                        )
+                    )
 
-                # # Try to generate the property description separately
-                # new_description = write_property_description(property_info)
-                # print(f"new description:{new_description}")
-                # if new_description:
-                #     self.stdout.write(
-                #         self.style.SUCCESS(
-                #             f"Updated description for property {property.property_id}"
-                #         )
-                #     )
-                # else:
-                #     self.stdout.write(
-                #         self.style.ERROR(
-                #             f"Failed to update description for property {property.property_id}"
-                #         )
-                #     )
+                # Try to generate the property description separately
+                new_description = write_property_description(property_info)
+                print(f"new description:{new_description}")
+                if new_description:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Updated description for property {property.property_id}\nTitle: {property.title}\n"
+                        )
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"Failed to update description for property {property.property_id}\nTitle: {property.title}\n"
+                        )
+                    )
 
                 # Generate the property summary
                 new_summary = generate_property_summary(property_info)
@@ -79,12 +76,12 @@ class Command(BaseCommand):
                 if new_summary:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Updated summary for property {property.property_id}"
+                            f"Updated summary for property {property.property_id}\nTitle: {property.title}\n"
                         )
                     )
                 else:
                     self.stdout.write(
                         self.style.ERROR(
-                            f"Failed to update summary for property {property.property_id}"
+                            f"Failed to update summary for property {property.property_id}\nTitle: {property.title}\n"
                         )
                     )
