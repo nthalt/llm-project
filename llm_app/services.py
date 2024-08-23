@@ -1,8 +1,19 @@
+import json
+import re
+
 import requests
 from django.db import transaction
 from properties.models import Property
 
 from llm_app.models import PropertySummary
+
+
+def test_parse_response():
+    test_response = "Title: Newly Renovated Hotel with Sea View"
+    parsed_title = parse_response(test_response, "Title")
+    print(
+        f"Parsed title: {parsed_title}"
+    )  # Should print "Newly Renovated Hotel with Sea View"
 
 
 def fetch_property_info(property_id, print_output=False):
@@ -57,38 +68,76 @@ def fetch_property_info(property_id, print_output=False):
         return None
 
 
-
-
-def rewrite_property_title(property_info, model="gemma2:2b", retries=3):
+def parse_response(response_chunks, keyword):
     """
-    Rewrites the title of the property using the specified Ollama model.
+    Extracts the value associated with the keyword from the list of JSON chunks.
+    Assumes each chunk is a JSON object containing a 'response' key.
+    """
+    response_text = ""
+    for chunk in response_chunks:
+        try:
+            data = json.loads(chunk.decode("utf-8"))
+            response_text += data.get("response", "")
+        except json.JSONDecodeError:
+            # Handle JSON parsing error
+            print("Error decoding JSON chunk")
+
+    # Now process the complete response text
+    keyword = f"{keyword}: "
+    start_index = response_text.find(keyword)
+
+    if start_index == -1:
+        return None
+
+    start_index += len(keyword)
+    end_index = response_text.find("\n", start_index)
+
+    if end_index == -1:
+        end_index = len(response_text)
+
+    return response_text[start_index:end_index].strip()
+
+
+def rewrite_property_title(property_info, model="gemma2:2b", retries=2):
+    """
+    Rewrites the title of the property using the specified model.
     Ensures data integrity by retrying on blank responses and handling errors.
     Uses streaming to handle large or chunked responses.
     """
     title = property_info.get("title")
     property_id = property_info.get("id")
 
-    prompt = f"Rewrite the title for the following property:\nTitle: {title}"
+    prompt = (
+        f"Please rewrite the following property title to make it more attractive and readable while "
+        f"preserving its original meaning. Ensure that the title reflects the nature and identity of "
+        f"the property, but do not simply return the original title. Rephrase the title creatively while "
+        f"keeping the key elements like the hotel name and location intact. Avoid changing the property "
+        f"type or location information. Make sure the title is free of any extra symbols or punctuation.\n\n"
+        f"Title: {title}\n\nGive only one new title and in the following format only:\nTitle: generated_title"
+    )
 
     for attempt in range(retries):
         try:
             response = requests.post(
-                "http://localhost:11434/api/generate",  # Assuming Ollama API runs locally on this endpoint
+                "http://localhost:11434/api/generate",  # Update with your API endpoint
                 json={"prompt": prompt, "model": model},
                 timeout=10,  # Timeout set to 10 seconds
                 stream=True,  # Enable streaming
             )
 
             if response.status_code == 200:
-                new_title = ""
+                response_chunks = []
 
                 # Process the response chunks as they arrive
                 for chunk in response.iter_content(chunk_size=None):
                     if chunk:
-                        data = chunk.decode("utf-8")  # Decode the chunk
-                        new_title += data  # Append chunk to the new_title
+                        response_chunks.append(chunk)  # Collect chunks
 
-                new_title = new_title.strip()  # Clean up the final title
+                response_text = parse_response(response_chunks, "Title")
+                print(f"Raw response text: {response_text}")  # Log the raw response
+
+                new_title = response_text
+                print(f"New title: {new_title}")
 
                 if new_title:
                     # Update the property title in the database
@@ -110,6 +159,57 @@ def rewrite_property_title(property_info, model="gemma2:2b", retries=3):
 
     print(
         f"Failed to rewrite title for property {property_id} after {retries} attempts."
+    )
+    return None
+
+
+def write_property_description(property_info, model="gemma2:2b", retries=3):
+    """
+    Generates a description for the property based on its title using the specified model.
+    Ensures data integrity by retrying on blank responses and handling errors.
+    """
+    title = property_info.get("title")
+    property_id = property_info.get("id")
+
+    # prompt = f"Please write a brief, engaging description for the following hotel based on its title. The description should reflect the hotel's possible atmosphere, target audience, or style. If specific details like amenities or location aren't clear from the title, infer them based on the hotel's name and common features of similar hotels. Keep the description concise, around 2-3 sentences, while preserving the hotel's originality.\nTitle: {title}"
+
+    prompt = f"Write a concise, compelling description for the following hotel property. Preserve the originality and identity of the hotel, but creatively rephrase it to highlight its unique features. The description should be brief, around 2-3 sentences, and make the hotel appealing to potential guests.\nTitle: {title}"
+
+    for attempt in range(retries):
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"prompt": prompt, "model": model},
+                timeout=10,
+                stream=True,
+            )
+
+            if response.status_code == 200:
+                description = ""
+                for chunk in response.iter_content(chunk_size=None):
+                    if chunk:
+                        data = chunk.decode("utf-8")
+                        description += data
+
+                description = description.strip()
+
+                if description:
+                    # with transaction.atomic():
+                    #     property_obj = Property.objects.get(property_id=property_id)
+                    #     property_obj.description = description
+                    #     property_obj.save()
+                    return description
+
+            else:
+                print(
+                    f"Unexpected response status {response.status_code} for property {property_id}."
+                )
+
+        except (requests.exceptions.Timeout, requests.exceptions.RequestException) as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+
+    print(
+        f"Failed to write description for property {property_id} after {retries} attempts."
     )
     return None
 
