@@ -171,9 +171,14 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
     title = property_info.get("title")
     property_id = property_info.get("id")
 
-    # prompt = f"Please write a brief, engaging description for the following hotel based on its title. The description should reflect the hotel's possible atmosphere, target audience, or style. If specific details like amenities or location aren't clear from the title, infer them based on the hotel's name and common features of similar hotels. Keep the description concise, around 2-3 sentences, while preserving the hotel's originality.\nTitle: {title}"
-
-    prompt = f"Write a concise, compelling description for the following hotel property. Preserve the originality and identity of the hotel, but creatively rephrase it to highlight its unique features. The description should be brief, around 2-3 sentences, and make the hotel appealing to potential guests.\nTitle: {title}"
+    prompt = (
+        f"Write a concise, compelling description for the following hotel property. "
+        f"Preserve the originality and identity of the hotel, but creatively rephrase it "
+        f"to highlight its unique features. The description should be brief, around 2-3 sentences, "
+        f"and make the hotel appealing to potential guests. Ensure that the description is free of any "
+        f"extra symbols or punctuation. Give only one new description and in the following format only::\n\n"
+        f"Description: generated_description\n\nTitle: {title}"
+    )
 
     for attempt in range(retries):
         try:
@@ -185,19 +190,27 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
             )
 
             if response.status_code == 200:
-                description = ""
+                response_chunks = []
+
+                # Process the response chunks as they arrive
                 for chunk in response.iter_content(chunk_size=None):
                     if chunk:
-                        data = chunk.decode("utf-8")
-                        description += data
+                        response_chunks.append(chunk)
 
-                description = description.strip()
+                description = parse_response(response_chunks, "Description")
+                print(f"Raw description: {description}")  # Log the raw response
+
+                # Remove unwanted punctuation and clean up description
+                description = "".join(
+                    c for c in description if c.isalnum() or c.isspace()
+                ).strip()
 
                 if description:
-                    # with transaction.atomic():
-                    #     property_obj = Property.objects.get(property_id=property_id)
-                    #     property_obj.description = description
-                    #     property_obj.save()
+                    # Update the property title in the database
+                    with transaction.atomic():
+                        property_obj = Property.objects.get(property_id=property_id)
+                        property_obj.description = description
+                        property_obj.save()
                     return description
 
             else:

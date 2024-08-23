@@ -50,37 +50,38 @@ class Command(BaseCommand):
                 # Rewrite the property title
 
                 # test_parse_response()
-                new_title = rewrite_property_title(property_info)
-                print(f"new title:{new_title}")
-                if new_title:
-                    #     property.title = new_title
-                    #     property.save()
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"Updated title for property {property.property_id}"
-                        )
-                    )
-                else:
-                    self.stdout.write(
-                        self.style.ERROR(
-                            f"Failed to update title for property {property.property_id}"
-                        )
-                    )
 
-                # Try to generate the property description separately
-                # new_description = write_property_description(property_info)
-                # print(f"new description:{new_description}")
-                # if new_description:
-                #     # property.description = new_description
-                #     # property.save()
+                # new_title = rewrite_property_title(property_info)
+                # print(f"new title:{new_title}")
+                # if new_title:
+                #     #     property.title = new_title
+                #     #     property.save()
                 #     self.stdout.write(
                 #         self.style.SUCCESS(
-                #             f"Updated description for property {property.property_id}"
+                #             f"Updated title for property {property.property_id}"
                 #         )
                 #     )
                 # else:
                 #     self.stdout.write(
                 #         self.style.ERROR(
-                #             f"Failed to update description for property {property.property_id}"
+                #             f"Failed to update title for property {property.property_id}"
                 #         )
                 #     )
+
+                # Try to generate the property description separately
+                new_description = write_property_description(property_info)
+                print(f"new description:{new_description}")
+                if new_description:
+                    # property.description = new_description
+                    # property.save()
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f"Updated description for property {property.property_id}"
+                        )
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"Failed to update description for property {property.property_id}"
+                        )
+                    )
