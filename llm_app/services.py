@@ -89,7 +89,7 @@ def parse_response(response_chunks, keyword):
     return response_text[start_index:end_index].strip()
 
 
-def rewrite_property_title(property_info, model="gemma2:2b", retries=2):
+def rewrite_property_title(property_info, model="gemma2:2b", retries=3):
     """
     Rewrites the title of the property using the specified model.
     Ensures data integrity by retrying on blank responses and handling errors.
@@ -112,7 +112,7 @@ def rewrite_property_title(property_info, model="gemma2:2b", retries=2):
             response = requests.post(
                 "http://localhost:11434/api/generate",  # Update with your API endpoint
                 json={"prompt": prompt, "model": model},
-                timeout=20,  # Timeout set to 10 seconds
+                timeout=30,  # Timeout set to 10 seconds
                 stream=True,  # Enable streaming
             )
 
@@ -177,7 +177,7 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
             response = requests.post(
                 "http://localhost:11434/api/generate",
                 json={"prompt": prompt, "model": model},
-                timeout=20,
+                timeout=30,
                 stream=True,
             )
 
@@ -247,7 +247,7 @@ def generate_property_summary(property_info, model="gemma2:2b", retries=3):
             response = requests.post(
                 "http://localhost:11434/api/generate",
                 json={"prompt": prompt, "model": model},
-                timeout=20,
+                timeout=30,
                 stream=True,
             )
 
