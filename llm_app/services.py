@@ -112,7 +112,7 @@ def rewrite_property_title(property_info, model="gemma2:2b", retries=2):
             response = requests.post(
                 "http://localhost:11434/api/generate",  # Update with your API endpoint
                 json={"prompt": prompt, "model": model},
-                timeout=10,  # Timeout set to 10 seconds
+                timeout=20,  # Timeout set to 10 seconds
                 stream=True,  # Enable streaming
             )
 
@@ -177,7 +177,7 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
             response = requests.post(
                 "http://localhost:11434/api/generate",
                 json={"prompt": prompt, "model": model},
-                timeout=10,
+                timeout=20,
                 stream=True,
             )
 
@@ -190,7 +190,7 @@ def write_property_description(property_info, model="gemma2:2b", retries=3):
                         response_chunks.append(chunk)
 
                 description = parse_response(response_chunks, "Description")
-                print(f"Raw description: {description}")  # Log the raw response
+                print(f"New description: {description}")  # Log the raw response
 
                 # Remove unwanted punctuation and clean up description
                 description = "".join(

@@ -33,18 +33,20 @@ class Command(BaseCommand):
         if limit is not None:
             properties = properties[:limit]
 
+        print("fetching data: \n")
+
         for property in properties:
             # Fetch property information
             property_info = fetch_property_info(property.property_id)
 
             if property_info:
-
+                print("\n")
                 new_title = rewrite_property_title(property_info)
                 # print(f"new title: {new_title}")
                 if new_title:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Updated title for property {property.property_id}\nTitle: {property.title}\n"
+                            f"Updated title for property {property.property_id}\n"
                         )
                     )
                 else:
@@ -56,11 +58,11 @@ class Command(BaseCommand):
 
                 # Try to generate the property description separately
                 new_description = write_property_description(property_info)
-                print(f"new description:{new_description}")
+                # print(f"new description: {new_description}")
                 if new_description:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Updated description for property {property.property_id}\nTitle: {property.title}\n"
+                            f"Updated description for property {property.property_id}\n"
                         )
                     )
                 else:
@@ -72,11 +74,11 @@ class Command(BaseCommand):
 
                 # Generate the property summary
                 new_summary = generate_property_summary(property_info)
-                print(f"New summary: {new_summary}")
+                # print(f"New summary: {new_summary}")
                 if new_summary:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"Updated summary for property {property.property_id}\nTitle: {property.title}\n"
+                            f"Updated summary for property {property.property_id}\n"
                         )
                     )
                 else:
