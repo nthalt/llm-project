@@ -68,7 +68,7 @@ For anyone interested, the `property-manager-django` project can be found here [
     pip install -r requirements.txt
     ```
 
-4. **Create a file named .env in the project root and add your PostgreSQL database connection details. Use .env.example as a reference. Scrapy database name is provided for convenience**
+4. **Create a file named .env in the project root and add your PostgreSQL database connection details. Use .env.example as a reference.**
 
     ```bash
     cp .env.example .env
