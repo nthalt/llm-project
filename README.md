@@ -94,7 +94,7 @@ For anyone interested, the `property-manager-django` project can be found here [
     python manage.py migrate
     ```
 
-8.  **Download Ollama from here**
+8.  **Download [Ollama](https://ollama.com/download) with the following command**
 
     ```bash
     curl -fsSL https://ollama.com/install.sh | sh
