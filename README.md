@@ -137,15 +137,10 @@ For anyone interested, the `property-manager-django` project can be found here [
 -   Please follow the directory structure mentioned in [Setup and Installation](#setup-and-installation). `property-manager-django` directory and `llm-project` directory should be under the same parent directory.
 -   Ensure that the database is created according to [https://github.com/nthalt/property-manager-django](https://github.com/nthalt/property-manager-django). If you have previously run it and have the database, then you don't need to do anything.
 -   Ensure that you have activated the virtual environment before running the `pip install -r requirements.txt` command. This ensures that all dependencies are installed within the virtual environment and do not affect the global Python environment.
--   Ensure the following lines exist in settings.py. This is the path for django project root directory.
+-   Ensure the following lines exist in .env file. This is the path for django project root directory.
 
     ```bash
-    property_manager_path = os.path.abspath(
-        os.path.join(BASE_DIR, "../property-manager-django")
-    )
-
-    if os.path.exists(property_manager_path):
-        sys.path.append(property_manager_path)
+    django_project_path='/insert_basepath_to_django_project/property-manager-django' # insert the path to property-manager-django project in your pc
     ```
 
 ## Database Schema
