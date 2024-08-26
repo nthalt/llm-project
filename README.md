@@ -68,7 +68,7 @@ For anyone interested, the `property-manager-django` project can be found here [
     pip install -r requirements.txt
     ```
 
-4. **Create a file named .env in the project root and add your PostgreSQL database connection details. Use .env.example as a reference.**
+4. **Create a file named .env in the project root and add your PostgreSQL database connection details. Use .env.example as a reference. Make sure to update the django project path**
 
     ```bash
     cp .env.example .env
@@ -106,14 +106,14 @@ For anyone interested, the `property-manager-django` project can be found here [
     ollama run gemma2:2b
     ```
 
-10. **Generate property title, description and summary using the following command. You can use the `--limit` flag to limit the number of properties to operate on.**
+10. **Generate property title, description and summary using the following command. You can use `--limit` flag to limit the number of properties to operate on.**
 
     ```bash
-    python manage.py summary --limit=5 # this runs the command for 5 properties. Change it to your liking. There should be 77 properties total. Giving 0 will do nothing.
+    python manage.py summary --limit=5      # this runs the command for 5 properties. Change it to your liking. There should be 77 properties total. Giving 0 will do nothing.
     ```
-
+    or
     ```bash
-    python manage.py summary # this runs the command for all properties.
+    python manage.py summary    # this runs the command for all properties.
     ```
 
 11. **Create an admin user**
