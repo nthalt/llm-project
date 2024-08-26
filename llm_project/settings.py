@@ -22,20 +22,10 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Attempt to dynamically add the path to the property-manager-django project
-property_manager_path = os.path.abspath(
-    os.path.join(BASE_DIR, "../property-manager-django")
-)
+sys.path.append(os.getenv('django_project_path'))
 
-if os.path.exists(property_manager_path):
-    sys.path.append(property_manager_path)
-else:
-    # Fallback to a default path or handle the error as you prefer
-    print(
-        "Warning: The 'property-manager-django' project could not be found. please follow the directory structure mentioned in the README.md"
-    )
-    # Optionally, you can set a default path or raise an error
-    # sys.path.append('/path/to/your/default/fallback/directory')
+# Optionally, you can set a default path or raise an error
+# sys.path.append('/path/to/your/default/fallback/directory')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
